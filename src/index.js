@@ -210,7 +210,7 @@ function addHandler(method, handlers, handler) {
     if (indexOfExistingHandler > -1 && handler.length < 7) {
       handlers[method].splice(indexOfExistingHandler, 1, handler);
     } else {
-      handlers[method].push(handler);
+      handlers[method].unshift(handler);
     }
   }
 }
