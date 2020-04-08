@@ -29,24 +29,30 @@ function adapter() {
   }.bind(this);
 }
 
-function getVerbObject() {
-  return VERBS.reduce(function (accumulator, verb) {
-    accumulator[verb] = [];
-    return accumulator;
-  }, {});
-}
-
 function reset() {
   resetHandlers.call(this);
   resetHistory.call(this);
 }
 
 function resetHandlers() {
-  this.handlers = getVerbObject();
+  this.handlers = VERBS.reduce(
+    function (accumulator, verb) {
+      accumulator.base[verb] = [];
+      accumulator.once[verb] = [];
+      return accumulator;
+    },
+    {
+      base: {},
+      once: {},
+    }
+  );
 }
 
 function resetHistory() {
-  this.history = getVerbObject();
+  this.history = VERBS.reduce(function (accumulator, verb) {
+    accumulator[verb] = [];
+    return accumulator;
+  }, {});
 }
 
 function MockAdapter(axiosInstance, options) {
@@ -182,8 +188,9 @@ VERBS.concat("any").forEach(function (method) {
 
 function findInHandlers(method, handlers, handler) {
   var index = -1;
-  for (var i = 0; i < handlers[method].length; i += 1) {
-    var item = handlers[method][i];
+  var methodHandlers = handlers[method];
+  for (var i = 0; i < methodHandlers.length; i += 1) {
+    var item = methodHandlers[i];
     var isReplyOnce = item.length === 7;
     var comparePaths =
       item[0] instanceof RegExp && handler[0] instanceof RegExp
@@ -201,16 +208,23 @@ function findInHandlers(method, handlers, handler) {
 }
 
 function addHandler(method, handlers, handler) {
+  var isOnceCase = handler.length === 7;
   if (method === "any") {
     VERBS.forEach(function (verb) {
-      handlers[verb].push(handler);
+      if (isOnceCase) {
+        handlers.once[verb].push(handler);
+      } else {
+        handlers.base[verb].push(handler);
+      }
     });
+  } else if (isOnceCase) {
+    handlers.once[method].push(handler);
   } else {
-    var indexOfExistingHandler = findInHandlers(method, handlers, handler);
-    if (indexOfExistingHandler > -1 && handler.length < 7) {
-      handlers[method].splice(indexOfExistingHandler, 1, handler);
+    var indexOfExistingHandler = findInHandlers(method, handlers.base, handler);
+    if (indexOfExistingHandler > -1) {
+      handlers.base[method].splice(indexOfExistingHandler, 1, handler);
     } else {
-      handlers[method].push(handler);
+      handlers.base[method].push(handler);
     }
   }
 }

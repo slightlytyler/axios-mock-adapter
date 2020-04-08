@@ -15,9 +15,9 @@ describe("MockAdapter onAny", function () {
   it("registers a handler for every HTTP method", function () {
     mock.onAny("/foo").reply(200);
 
-    expect(mock.handlers["get"]).not.to.be.empty;
-    expect(mock.handlers["patch"]).not.to.be.empty;
-    expect(mock.handlers["put"]).not.to.be.empty;
+    expect(mock.handlers.base["get"]).not.to.be.empty;
+    expect(mock.handlers.base["patch"]).not.to.be.empty;
+    expect(mock.handlers.base["put"]).not.to.be.empty;
   });
 
   it("mocks any request with a matching url", function () {
@@ -54,8 +54,8 @@ describe("MockAdapter onAny", function () {
     mock.onAny("/foo").replyOnce(200);
 
     return instance.get("/foo").then(function () {
-      expect(mock.handlers["get"]).to.be.empty;
-      expect(mock.handlers["post"]).to.be.empty;
+      expect(mock.handlers.once["get"]).to.be.empty;
+      expect(mock.handlers.once["post"]).to.be.empty;
     });
   });
 });

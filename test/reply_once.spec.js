@@ -21,8 +21,8 @@ describe("MockAdapter replyOnce", function () {
       .onPost("/foo")
       .replyOnce(201);
 
-    expect(mock.handlers["get"].length).to.equal(2);
-    expect(mock.handlers["post"].length).to.equal(2);
+    expect(mock.handlers.once["get"].length).to.equal(2);
+    expect(mock.handlers.once["post"].length).to.equal(2);
   });
 
   it("replies as normally on the first call", function () {
@@ -104,6 +104,48 @@ describe("MockAdapter replyOnce", function () {
       })
       .then(function (response) {
         expect(response.status).to.equal(202);
+      });
+  });
+
+  it("replies once taking presedence of a base handler", function () {
+    mock.onGet("/foo").reply(200, {
+      foo: "default",
+    });
+
+    mock.onGet("/foo").replyOnce(200, {
+      foo: "bar",
+    });
+
+    mock.onGet("/foo").replyOnce(200, {
+      foo: "baz",
+    });
+
+    return instance
+      .get("/foo")
+      .then(function (response) {
+        expect(response.status).to.equal(200);
+        expect(response.data.foo).to.equal("bar");
+      })
+      .then(function () {
+        return instance.get("/foo");
+      })
+      .then(function (response) {
+        expect(response.status).to.equal(200);
+        expect(response.data.foo).to.equal("baz");
+      })
+      .then(function () {
+        return instance.get("/foo");
+      })
+      .then(function (response) {
+        expect(response.status).to.equal(200);
+        expect(response.data.foo).to.equal("default");
+      })
+      .then(function () {
+        return instance.get("/foo");
+      })
+      .then(function (response) {
+        expect(response.status).to.equal(200);
+        expect(response.data.foo).to.equal("default");
       });
   });
 });

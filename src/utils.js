@@ -48,7 +48,10 @@ function findHandler(
   headers,
   baseURL
 ) {
-  return find(handlers[method.toLowerCase()], function (handler) {
+  var methodHandlers = handlers.once[method.toLowerCase()].concat(
+    handlers.base[method.toLowerCase()]
+  );
+  return find(methodHandlers, function (handler) {
     if (typeof handler[0] === "string") {
       return (
         (isUrlMatching(url, handler[0]) ||
@@ -103,10 +106,10 @@ function isBodyMatching(body, requiredBody) {
 }
 
 function purgeIfReplyOnce(mock, handler) {
-  Object.keys(mock.handlers).forEach(function (key) {
-    var index = mock.handlers[key].indexOf(handler);
+  Object.keys(mock.handlers.once).forEach(function (key) {
+    var index = mock.handlers.once[key].indexOf(handler);
     if (index > -1) {
-      mock.handlers[key].splice(index, 1);
+      mock.handlers.once[key].splice(index, 1);
     }
   });
 }
@@ -123,12 +126,12 @@ function settle(resolve, reject, response, delay) {
     response.config.validateStatus(response.status)
       ? resolve(response)
       : reject(
-        createAxiosError(
-          "Request failed with status code " + response.status,
-          response.config,
-          response
-        )
-      );
+          createAxiosError(
+            "Request failed with status code " + response.status,
+            response.config,
+            response
+          )
+        );
     return;
   }
 

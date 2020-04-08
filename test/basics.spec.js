@@ -445,10 +445,10 @@ describe("MockAdapter basics", function () {
 
   it("resets the registered mock handlers", function () {
     mock.onGet("/foo").reply(200);
-    expect(mock.handlers["get"]).not.to.be.empty;
+    expect(mock.handlers.base["get"]).not.to.be.empty;
 
     mock.reset();
-    expect(mock.handlers["get"]).to.be.empty;
+    expect(mock.handlers.base["get"]).to.be.empty;
   });
 
   it("resets the history", function () {
@@ -462,13 +462,13 @@ describe("MockAdapter basics", function () {
 
   it("resets only the registered mock handlers, not the history", function () {
     mock.onAny("/foo").reply(200);
-    expect(mock.handlers["get"]).not.to.be.empty;
+    expect(mock.handlers.base["get"]).not.to.be.empty;
     expect(mock.history["get"]).to.eql([]);
 
     return instance.get("/foo").then(function (response) {
       mock.resetHandlers();
       expect(mock.history.get.length).to.equal(1);
-      expect(mock.handlers["get"]).to.be.empty;
+      expect(mock.handlers.base["get"]).to.be.empty;
     });
   });
 
@@ -486,9 +486,9 @@ describe("MockAdapter basics", function () {
       .onPost("/baz")
       .reply(500);
 
-    expect(mock.handlers["get"].length).to.equal(2);
-    expect(mock.handlers["patch"].length).to.equal(1);
-    expect(mock.handlers["post"].length).to.equal(2);
+    expect(mock.handlers.base["get"].length).to.equal(2);
+    expect(mock.handlers.base["patch"].length).to.equal(1);
+    expect(mock.handlers.base["post"].length).to.equal(2);
   });
 
   it("allows to delay responses", function () {
@@ -610,14 +610,18 @@ describe("MockAdapter basics", function () {
 
   it("does not add duplicate handlers", function () {
     mock.onGet("/").replyOnce(312);
+    mock.onGet("/").replyOnce(313);
     mock.onGet("/").reply(200);
     mock.onGet("/1").reply(200);
+    mock.onGet("/1").reply(400);
     mock.onGet("/2").reply(200);
     mock.onGet("/3").replyOnce(300);
     mock.onGet("/3").reply(200);
+    mock.onGet("/3").reply(404);
     mock.onGet("/4").reply(200);
 
-    expect(mock.handlers["get"].length).to.equal(7);
+    expect(mock.handlers.base["get"].length).to.equal(5);
+    expect(mock.handlers.once["get"].length).to.equal(3);
   });
 
   it("supports chaining on same path with different params", function () {
@@ -656,7 +660,7 @@ describe("MockAdapter basics", function () {
     mock.onGet("/").reply(401);
 
     return instance.get("/").catch(function (error) {
-      expect(mock.handlers["get"].length).to.equal(1);
+      expect(mock.handlers.base["get"].length).to.equal(1);
       expect(error.response.status).to.equal(401);
     });
   });
@@ -669,7 +673,7 @@ describe("MockAdapter basics", function () {
     return instance
       .get("/foo/bar")
       .then(function (response) {
-        expect(mock.handlers["get"].length).to.equal(2);
+        expect(mock.handlers.base["get"].length).to.equal(2);
         expect(response.status).to.equal(200);
         return instance.get("/foo/baz/56");
       })
@@ -741,8 +745,8 @@ describe("MockAdapter basics", function () {
     mock.onGet("/", {}, { "Accept-Charset": "utf-8" }).reply(500);
     mock.onGet("/", {}, { "Accept-Charset": "utf-8" }).reply(200);
 
-    expect(mock.handlers["get"].length).to.equal(1);
-    expect(mock.handlers["get"][0][3]).to.equal(200);
+    expect(mock.handlers.base["get"].length).to.equal(1);
+    expect(mock.handlers.base["get"][0][3]).to.equal(200);
   });
 
   it("supports a retry", function () {
