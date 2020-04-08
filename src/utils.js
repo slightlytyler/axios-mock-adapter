@@ -126,12 +126,12 @@ function settle(resolve, reject, response, delay) {
     response.config.validateStatus(response.status)
       ? resolve(response)
       : reject(
-          createAxiosError(
-            "Request failed with status code " + response.status,
-            response.config,
-            response
-          )
-        );
+        createAxiosError(
+          "Request failed with status code " + response.status,
+          response.config,
+          response
+        )
+      );
     return;
   }
 
